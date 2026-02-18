@@ -84,6 +84,7 @@ class TodoListViewModel @Inject constructor(
                     }
                 }
                 is Result.Error -> {
+                    handleErrorResult(result)
                     _uiState.update {
                         it.copy(
                             isLoading = false,
@@ -126,6 +127,7 @@ class TodoListViewModel @Inject constructor(
                     }
                 }
                 is Result.Error -> {
+                    handleErrorResult(result)
                     _uiState.update {
                         it.copy(isAddingTodo = false, errorMessage = result.message)
                     }
@@ -148,6 +150,7 @@ class TodoListViewModel @Inject constructor(
 
             val result = todoRepository.updateTodo(todo.id, todo.name, !todo.done, todo.userId)
             if (result is Result.Error) {
+                handleErrorResult(result)
                 // Откатываем при ошибке и показываем сообщение
                 _uiState.update { state ->
                     state.copy(
@@ -170,6 +173,7 @@ class TodoListViewModel @Inject constructor(
 
             val result = todoRepository.deleteTodo(todo.id)
             if (result is Result.Error) {
+                handleErrorResult(result)
                 // Откатываем при ошибке и показываем сообщение
                 _uiState.update { it.copy(todos = previousTodos, errorMessage = result.message) }
             }
@@ -192,5 +196,15 @@ class TodoListViewModel @Inject constructor(
     /** Сброс ошибки */
     fun dismissError() {
         _uiState.update { it.copy(errorMessage = null) }
+    }
+
+    /** Проверяет, является ли ошибка 401 (токен истёк) — перенаправляет на логин */
+    private fun handleErrorResult(error: Result.Error) {
+        if (error.code == 401) {
+            viewModelScope.launch {
+                authRepository.logout()
+                _uiState.update { it.copy(isLoggedOut = true) }
+            }
+        }
     }
 }
