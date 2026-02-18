@@ -90,7 +90,7 @@ class RegisterViewModel @Inject constructor(
         if (state.name.isBlank()) return "Введите имя пользователя"
         if (state.name.length < 2) return "Имя должно содержать минимум 2 символа"
         if (state.password.isBlank()) return "Введите пароль"
-        if (state.password.length < 5) return "Пароль должен содержать минимум 5 символов"
+        if (state.password.length < 3) return "Пароль должен содержать минимум 3 символов"
         if (state.password != state.confirmPassword) return "Пароли не совпадают"
         return null
     }

@@ -146,17 +146,16 @@ class TodoListViewModel @Inject constructor(
                 )
             }
 
-            when (todoRepository.updateTodo(todo.id, todo.name, !todo.done, todo.userId)) {
-                is Result.Success -> { /* UI уже обновлён */ }
-                is Result.Error -> {
-                    // Откатываем при ошибке
-                    _uiState.update { state ->
-                        state.copy(
-                            todos = state.todos.map {
-                                if (it.id == todo.id) it.copy(done = todo.done) else it
-                            }
-                        )
-                    }
+            val result = todoRepository.updateTodo(todo.id, todo.name, !todo.done, todo.userId)
+            if (result is Result.Error) {
+                // Откатываем при ошибке и показываем сообщение
+                _uiState.update { state ->
+                    state.copy(
+                        todos = state.todos.map {
+                            if (it.id == todo.id) it.copy(done = todo.done) else it
+                        },
+                        errorMessage = result.message
+                    )
                 }
             }
         }
@@ -169,12 +168,10 @@ class TodoListViewModel @Inject constructor(
             val previousTodos = _uiState.value.todos
             _uiState.update { it.copy(todos = it.todos.filter { t -> t.id != todo.id }) }
 
-            when (todoRepository.deleteTodo(todo.id)) {
-                is Result.Success -> { /* Уже удалена из UI */ }
-                is Result.Error -> {
-                    // Откатываем при ошибке
-                    _uiState.update { it.copy(todos = previousTodos) }
-                }
+            val result = todoRepository.deleteTodo(todo.id)
+            if (result is Result.Error) {
+                // Откатываем при ошибке и показываем сообщение
+                _uiState.update { it.copy(todos = previousTodos, errorMessage = result.message) }
             }
         }
     }
