@@ -20,7 +20,13 @@ class TokenRefreshInterceptor @Inject constructor(
 ) : Interceptor {
 
     override fun intercept(chain: Interceptor.Chain): Response {
-        val response = chain.proceed(chain.request())
+        val request = chain.request()
+        val response = chain.proceed(request)
+
+        // Не обновляем токен для эндпоинтов аутентификации — предотвращаем бесконечный цикл
+        if (request.url.encodedPath.contains("api/auth/")) {
+            return response
+        }
 
         // Если ответ 401 — пробуем обновить токен
         if (response.code == 401) {
@@ -29,11 +35,8 @@ class TokenRefreshInterceptor @Inject constructor(
             }
 
             if (!refreshToken.isNullOrBlank()) {
-                // Закрываем старый ответ
-                response.close()
-
-                // Пробуем обновить токен
-                val refreshResponse = runBlocking {
+                // Пробуем получить новый access token
+                val newAccessToken = runBlocking {
                     try {
                         val authApi = authApiServiceProvider.get()
                         val result = authApi.refreshToken(RefreshTokenRequest(refreshToken))
@@ -55,11 +58,13 @@ class TokenRefreshInterceptor @Inject constructor(
                     }
                 }
 
-                // Повторяем оригинальный запрос с новым токеном
-                if (refreshResponse != null) {
-                    val newRequest = chain.request().newBuilder()
+                // Повторяем оригинальный запрос с новым токеном.
+                // response.close() только здесь — иначе вернём закрытый body и получим IOException
+                if (newAccessToken != null) {
+                    response.close()
+                    val newRequest = request.newBuilder()
                         .removeHeader("Authorization")
-                        .addHeader("Authorization", "Bearer $refreshResponse")
+                        .addHeader("Authorization", "Bearer $newAccessToken")
                         .build()
                     return chain.proceed(newRequest)
                 }
