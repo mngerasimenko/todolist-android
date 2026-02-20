@@ -24,7 +24,7 @@ class TodoRepositoryImpl @Inject constructor(
     override suspend fun createTodo(
         name: String,
         userId: Long,
-        accountId: Long,
+        listId: Long,
         isPrivate: Boolean
     ): Result<Todo> {
         return try {
@@ -32,7 +32,7 @@ class TodoRepositoryImpl @Inject constructor(
                 TodoRequest(
                     name = name,
                     userId = userId,
-                    accountId = accountId,
+                    listId = listId,
                     isPrivate = isPrivate
                 )
             )
@@ -57,7 +57,7 @@ class TodoRepositoryImpl @Inject constructor(
         name: String,
         done: Boolean,
         userId: Long,
-        accountId: Long
+        listId: Long
     ): Result<Todo> {
         return try {
             val response = todoApi.updateTodo(
@@ -65,7 +65,7 @@ class TodoRepositoryImpl @Inject constructor(
                 TodoRequest(
                     name = name,
                     userId = userId,
-                    accountId = accountId,
+                    listId = listId,
                     done = done
                 )
             )
@@ -112,7 +112,7 @@ class TodoRepositoryImpl @Inject constructor(
         userName = dto.userName,
         completorUserId = dto.completorUserId,
         completorUserName = dto.completorUserName,
-        accountId = dto.accountId,
+        listId = dto.listId,
         creatorColor = dto.creatorColor,
         completorColor = dto.completorColor,
         createdAt = dto.createdAt,

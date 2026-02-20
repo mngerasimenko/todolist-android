@@ -7,10 +7,10 @@ import ru.mngerasimenko.todolist.domain.model.Todo
 interface TodoRepository {
 
     /** Создать новую задачу */
-    suspend fun createTodo(name: String, userId: Long, accountId: Long, isPrivate: Boolean = false): Result<Todo>
+    suspend fun createTodo(name: String, userId: Long, listId: Long, isPrivate: Boolean = false): Result<Todo>
 
     /** Обновить задачу (имя или статус) */
-    suspend fun updateTodo(id: Long, name: String, done: Boolean, userId: Long, accountId: Long): Result<Todo>
+    suspend fun updateTodo(id: Long, name: String, done: Boolean, userId: Long, listId: Long): Result<Todo>
 
     /** Удалить задачу */
     suspend fun deleteTodo(id: Long): Result<Unit>

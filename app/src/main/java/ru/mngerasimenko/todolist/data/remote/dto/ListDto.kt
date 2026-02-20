@@ -5,25 +5,25 @@ import kotlinx.serialization.Serializable
 
 // === Запросы ===
 
-/** Запрос на создание аккаунта */
+/** Запрос на создание списка */
 @Serializable
-data class CreateAccountRequest(
+data class CreateListRequest(
     val name: String,
     val password: String
 )
 
-/** Запрос на вступление в аккаунт */
+/** Запрос на вступление в список */
 @Serializable
-data class JoinAccountRequest(
+data class JoinListRequest(
     val name: String,
     val password: String
 )
 
 // === Ответы ===
 
-/** Ответ с информацией об аккаунте */
+/** Ответ с информацией о списке */
 @Serializable
-data class AccountResponse(
+data class ListResponse(
     val id: Long,
     val name: String,
     val role: String,
@@ -31,9 +31,9 @@ data class AccountResponse(
     val createdAt: String? = null
 )
 
-/** Ответ с информацией об участнике аккаунта */
+/** Ответ с информацией об участнике списка */
 @Serializable
-data class AccountMemberResponse(
+data class ListMemberResponse(
     @SerialName("user_id")
     val userId: Long,
     @SerialName("user_name")

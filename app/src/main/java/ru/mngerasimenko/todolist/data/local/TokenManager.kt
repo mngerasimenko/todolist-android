@@ -30,8 +30,8 @@ class TokenManager @Inject constructor(
         private val USER_ID_KEY = longPreferencesKey("user_id")
         private val USER_NAME_KEY = stringPreferencesKey("user_name")
         private val USER_EMAIL_KEY = stringPreferencesKey("user_email")
-        private val ACCOUNT_ID_KEY = longPreferencesKey("account_id")
-        private val ACCOUNT_NAME_KEY = stringPreferencesKey("account_name")
+        private val LIST_ID_KEY = longPreferencesKey("list_id")
+        private val LIST_NAME_KEY = stringPreferencesKey("list_name")
     }
 
     /** Flow с access токеном (null если не авторизован) */
@@ -54,14 +54,14 @@ class TokenManager @Inject constructor(
         prefs[USER_NAME_KEY]
     }
 
-    /** Flow с ID текущего аккаунта */
-    val accountIdFlow: Flow<Long?> = context.dataStore.data.map { prefs ->
-        prefs[ACCOUNT_ID_KEY]
+    /** Flow с ID текущего списка */
+    val listIdFlow: Flow<Long?> = context.dataStore.data.map { prefs ->
+        prefs[LIST_ID_KEY]
     }
 
-    /** Flow с названием текущего аккаунта */
-    val accountNameFlow: Flow<String?> = context.dataStore.data.map { prefs ->
-        prefs[ACCOUNT_NAME_KEY]
+    /** Flow с названием текущего списка */
+    val listNameFlow: Flow<String?> = context.dataStore.data.map { prefs ->
+        prefs[LIST_NAME_KEY]
     }
 
     /** Flow — авторизован ли пользователь */
@@ -86,19 +86,19 @@ class TokenManager @Inject constructor(
         }
     }
 
-    /** Сохраняет выбранный аккаунт */
-    suspend fun saveAccount(accountId: Long, accountName: String) {
+    /** Сохраняет выбранный список */
+    suspend fun saveList(listId: Long, listName: String) {
         context.dataStore.edit { prefs ->
-            prefs[ACCOUNT_ID_KEY] = accountId
-            prefs[ACCOUNT_NAME_KEY] = accountName
+            prefs[LIST_ID_KEY] = listId
+            prefs[LIST_NAME_KEY] = listName
         }
     }
 
-    /** Очищает выбранный аккаунт (при смене аккаунта) */
-    suspend fun clearAccount() {
+    /** Очищает выбранный список (при смене списка) */
+    suspend fun clearList() {
         context.dataStore.edit { prefs ->
-            prefs.remove(ACCOUNT_ID_KEY)
-            prefs.remove(ACCOUNT_NAME_KEY)
+            prefs.remove(LIST_ID_KEY)
+            prefs.remove(LIST_NAME_KEY)
         }
     }
 

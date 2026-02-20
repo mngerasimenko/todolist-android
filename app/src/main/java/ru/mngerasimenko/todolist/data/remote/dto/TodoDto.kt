@@ -10,8 +10,8 @@ data class TodoRequest(
     val name: String,
     @SerialName("user_id")
     val userId: Long,
-    @SerialName("account_id")
-    val accountId: Long,
+    @SerialName("list_id")
+    val listId: Long,
     val done: Boolean = false,
     @SerialName("is_private")
     val isPrivate: Boolean = false
@@ -38,8 +38,8 @@ data class TodoResponse(
     val completorUserId: Long? = null,
     @SerialName("completor_user_name")
     val completorUserName: String? = null,
-    @SerialName("account_id")
-    val accountId: Long? = null,
+    @SerialName("list_id")
+    val listId: Long? = null,
     @SerialName("creator_color")
     val creatorColor: String? = null,
     @SerialName("completor_color")

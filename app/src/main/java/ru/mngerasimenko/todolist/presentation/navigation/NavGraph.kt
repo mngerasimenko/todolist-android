@@ -15,7 +15,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
 import kotlinx.serialization.Serializable
-import ru.mngerasimenko.todolist.presentation.screen.account.AccountListScreen
+import ru.mngerasimenko.todolist.presentation.screen.listselection.ListSelectionScreen
 import ru.mngerasimenko.todolist.presentation.screen.login.LoginScreen
 import ru.mngerasimenko.todolist.presentation.screen.register.RegisterScreen
 import ru.mngerasimenko.todolist.presentation.screen.todolist.TodoListScreen
@@ -24,13 +24,13 @@ import ru.mngerasimenko.todolist.presentation.screen.todolist.TodoListScreen
 @Serializable object AuthGraph
 @Serializable object Login
 @Serializable object Register
-@Serializable object AccountList
+@Serializable object ListSelection
 @Serializable object TodoList
 
 /**
  * Навигационный граф приложения.
- * Маршруты: Login/Register → AccountList → TodoList.
- * Проверяет состояние авторизации и наличие аккаунта при запуске.
+ * Маршруты: Login/Register → ListSelection → TodoList.
+ * Проверяет состояние авторизации и наличие списка при запуске.
  */
 @Composable
 fun NavGraph(
@@ -38,10 +38,10 @@ fun NavGraph(
     splashViewModel: SplashViewModel = hiltViewModel()
 ) {
     val isLoggedIn by splashViewModel.isLoggedIn.collectAsStateWithLifecycle()
-    val hasAccount by splashViewModel.hasAccount.collectAsStateWithLifecycle()
+    val hasList by splashViewModel.hasList.collectAsStateWithLifecycle()
 
     // Ждём определения состояния авторизации
-    if (isLoggedIn == null || hasAccount == null) {
+    if (isLoggedIn == null || hasList == null) {
         Box(
             modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center
@@ -54,8 +54,8 @@ fun NavGraph(
     // Определяем стартовый экран
     val startDestination: Any = when {
         isLoggedIn != true -> AuthGraph
-        hasAccount == true -> TodoList
-        else -> AccountList
+        hasList == true -> TodoList
+        else -> ListSelection
     }
 
     NavHost(
@@ -66,8 +66,8 @@ fun NavGraph(
         navigation<AuthGraph>(startDestination = Login) {
             composable<Login> {
                 LoginScreen(
-                    onNavigateToAccountList = {
-                        navController.navigate(AccountList) {
+                    onNavigateToListSelection = {
+                        navController.navigate(ListSelection) {
                             popUpTo<AuthGraph> { inclusive = true }
                         }
                     },
@@ -79,8 +79,8 @@ fun NavGraph(
 
             composable<Register> {
                 RegisterScreen(
-                    onNavigateToAccountList = {
-                        navController.navigate(AccountList) {
+                    onNavigateToListSelection = {
+                        navController.navigate(ListSelection) {
                             popUpTo<AuthGraph> { inclusive = true }
                         }
                     },
@@ -91,17 +91,17 @@ fun NavGraph(
             }
         }
 
-        // Экран списка аккаунтов
-        composable<AccountList> {
-            AccountListScreen(
+        // Экран выбора списка
+        composable<ListSelection> {
+            ListSelectionScreen(
                 onNavigateToTodoList = {
                     navController.navigate(TodoList) {
-                        popUpTo<AccountList> { inclusive = true }
+                        popUpTo<ListSelection> { inclusive = true }
                     }
                 },
                 onNavigateToLogin = {
                     navController.navigate(AuthGraph) {
-                        popUpTo<AccountList> { inclusive = true }
+                        popUpTo<ListSelection> { inclusive = true }
                     }
                 }
             )
@@ -115,8 +115,8 @@ fun NavGraph(
                         popUpTo<TodoList> { inclusive = true }
                     }
                 },
-                onNavigateToAccountList = {
-                    navController.navigate(AccountList) {
+                onNavigateToListSelection = {
+                    navController.navigate(ListSelection) {
                         popUpTo<TodoList> { inclusive = true }
                     }
                 }

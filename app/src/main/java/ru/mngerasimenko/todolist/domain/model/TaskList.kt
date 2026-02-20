@@ -1,15 +1,15 @@
 package ru.mngerasimenko.todolist.domain.model
 
-/** Модель аккаунта (доменный слой) */
-data class Account(
+/** Модель списка задач (доменный слой) */
+data class TaskList(
     val id: Long,
     val name: String,
     val role: String,
     val createdAt: String?
 )
 
-/** Модель участника аккаунта (доменный слой) */
-data class AccountMember(
+/** Модель участника списка (доменный слой) */
+data class ListMember(
     val userId: Long,
     val userName: String,
     val role: String,

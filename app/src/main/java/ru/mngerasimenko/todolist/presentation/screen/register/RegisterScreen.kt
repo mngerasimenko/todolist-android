@@ -51,7 +51,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RegisterScreen(
-    onNavigateToAccountList: () -> Unit,
+    onNavigateToListSelection: () -> Unit,
     onNavigateBack: () -> Unit,
     viewModel: RegisterViewModel = hiltViewModel()
 ) {
@@ -63,7 +63,7 @@ fun RegisterScreen(
     LaunchedEffect(uiState.isRegisterSuccess) {
         if (uiState.isRegisterSuccess) {
             viewModel.onRegisterHandled()
-            onNavigateToAccountList()
+            onNavigateToListSelection()
         }
     }
 

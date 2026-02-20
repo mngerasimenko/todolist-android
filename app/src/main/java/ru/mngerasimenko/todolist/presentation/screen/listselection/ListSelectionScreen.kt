@@ -1,4 +1,4 @@
-package ru.mngerasimenko.todolist.presentation.screen.account
+package ru.mngerasimenko.todolist.presentation.screen.listselection
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -48,26 +48,26 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import ru.mngerasimenko.todolist.domain.model.Account
+import ru.mngerasimenko.todolist.domain.model.TaskList
 
 /**
- * Экран списка аккаунтов пользователя.
- * Позволяет выбрать, создать или вступить в аккаунт.
+ * Экран выбора списка задач.
+ * Позволяет выбрать, создать или вступить в список.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AccountListScreen(
+fun ListSelectionScreen(
     onNavigateToTodoList: () -> Unit,
     onNavigateToLogin: () -> Unit,
-    viewModel: AccountListViewModel = hiltViewModel()
+    viewModel: ListSelectionViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
 
-    // Навигация при выборе аккаунта
-    LaunchedEffect(uiState.selectedAccountId) {
-        if (uiState.selectedAccountId != null) {
-            viewModel.onAccountSelected()
+    // Навигация при выборе списка
+    LaunchedEffect(uiState.selectedListId) {
+        if (uiState.selectedListId != null) {
+            viewModel.onListSelected()
             onNavigateToTodoList()
         }
     }
@@ -92,7 +92,7 @@ fun AccountListScreen(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
-                title = { Text("Мои аккаунты") },
+                title = { Text("Мои списки") },
                 actions = {
                     IconButton(onClick = { viewModel.logout() }) {
                         Icon(
@@ -143,7 +143,7 @@ fun AccountListScreen(
                 }
             }
 
-            // Список аккаунтов
+            // Список
             if (uiState.isLoading) {
                 Box(
                     modifier = Modifier.fillMaxSize(),
@@ -151,7 +151,7 @@ fun AccountListScreen(
                 ) {
                     CircularProgressIndicator()
                 }
-            } else if (uiState.accounts.isEmpty()) {
+            } else if (uiState.lists.isEmpty()) {
                 Box(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
@@ -165,7 +165,7 @@ fun AccountListScreen(
                         )
                         Spacer(modifier = Modifier.height(16.dp))
                         Text(
-                            text = "Нет аккаунтов",
+                            text = "Нет списков",
                             style = MaterialTheme.typography.titleMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -183,12 +183,12 @@ fun AccountListScreen(
                     verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     items(
-                        items = uiState.accounts,
+                        items = uiState.lists,
                         key = { it.id }
-                    ) { account ->
-                        AccountItem(
-                            account = account,
-                            onClick = { viewModel.selectAccount(account) }
+                    ) { taskList ->
+                        ListItem(
+                            taskList = taskList,
+                            onClick = { viewModel.selectList(taskList) }
                         )
                     }
                     item { Spacer(modifier = Modifier.height(16.dp)) }
@@ -197,41 +197,41 @@ fun AccountListScreen(
         }
     }
 
-    // Диалог создания аккаунта
+    // Диалог создания списка
     if (uiState.showCreateDialog) {
-        AccountDialog(
-            title = "Создать аккаунт",
+        ListDialog(
+            title = "Создать список",
             name = uiState.createName,
             onNameChange = viewModel::onCreateNameChange,
             password = uiState.createPassword,
             onPasswordChange = viewModel::onCreatePasswordChange,
             confirmText = "Создать",
             isLoading = uiState.isCreating,
-            onConfirm = viewModel::createAccount,
+            onConfirm = viewModel::createList,
             onDismiss = viewModel::dismissCreateDialog
         )
     }
 
-    // Диалог вступления в аккаунт
+    // Диалог вступления в список
     if (uiState.showJoinDialog) {
-        AccountDialog(
-            title = "Вступить в аккаунт",
+        ListDialog(
+            title = "Вступить в список",
             name = uiState.joinName,
             onNameChange = viewModel::onJoinNameChange,
             password = uiState.joinPassword,
             onPasswordChange = viewModel::onJoinPasswordChange,
             confirmText = "Вступить",
             isLoading = uiState.isJoining,
-            onConfirm = viewModel::joinAccount,
+            onConfirm = viewModel::joinList,
             onDismiss = viewModel::dismissJoinDialog
         )
     }
 }
 
-/** Элемент списка аккаунтов */
+/** Элемент списка */
 @Composable
-private fun AccountItem(
-    account: Account,
+private fun ListItem(
+    taskList: TaskList,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -249,10 +249,10 @@ private fun AccountItem(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
-                imageVector = if (account.role == "ADMIN") Icons.Default.AdminPanelSettings
+                imageVector = if (taskList.role == "ADMIN") Icons.Default.AdminPanelSettings
                 else Icons.Default.Person,
                 contentDescription = null,
-                tint = if (account.role == "ADMIN") MaterialTheme.colorScheme.primary
+                tint = if (taskList.role == "ADMIN") MaterialTheme.colorScheme.primary
                 else MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.size(32.dp)
             )
@@ -261,11 +261,11 @@ private fun AccountItem(
 
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = account.name,
+                    text = taskList.name,
                     style = MaterialTheme.typography.titleMedium
                 )
                 Text(
-                    text = if (account.role == "ADMIN") "Администратор" else "Участник",
+                    text = if (taskList.role == "ADMIN") "Администратор" else "Участник",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -274,9 +274,9 @@ private fun AccountItem(
     }
 }
 
-/** Универсальный диалог для создания/вступления в аккаунт */
+/** Универсальный диалог для создания/вступления в список */
 @Composable
-private fun AccountDialog(
+private fun ListDialog(
     title: String,
     name: String,
     onNameChange: (String) -> Unit,
@@ -295,7 +295,7 @@ private fun AccountDialog(
                 OutlinedTextField(
                     value = name,
                     onValueChange = onNameChange,
-                    label = { Text("Название аккаунта") },
+                    label = { Text("Название списка") },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
                     enabled = !isLoading

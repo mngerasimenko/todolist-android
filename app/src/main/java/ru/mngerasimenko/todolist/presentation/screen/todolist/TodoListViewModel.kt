@@ -12,7 +12,7 @@ import kotlinx.coroutines.launch
 import ru.mngerasimenko.todolist.data.local.TokenManager
 import ru.mngerasimenko.todolist.domain.model.Result
 import ru.mngerasimenko.todolist.domain.model.Todo
-import ru.mngerasimenko.todolist.domain.repository.AccountRepository
+import ru.mngerasimenko.todolist.domain.repository.ListRepository
 import ru.mngerasimenko.todolist.domain.repository.AuthRepository
 import ru.mngerasimenko.todolist.domain.repository.TodoRepository
 import javax.inject.Inject
@@ -21,7 +21,7 @@ import javax.inject.Inject
 data class TodoListUiState(
     val todos: List<Todo> = emptyList(),
     val userName: String = "",
-    val accountName: String = "",
+    val listName: String = "",
     val isLoading: Boolean = false,
     val isRefreshing: Boolean = false,
     val errorMessage: String? = null,
@@ -29,18 +29,18 @@ data class TodoListUiState(
     val newTodoIsPrivate: Boolean = false,
     val isAddingTodo: Boolean = false,
     val isLoggedOut: Boolean = false,
-    val navigateToAccountList: Boolean = false
+    val navigateToListSelection: Boolean = false
 )
 
 /**
  * ViewModel для экрана списка задач.
- * Загружает задачи аккаунта, позволяет создавать, обновлять,
+ * Загружает задачи списка, позволяет создавать, обновлять,
  * удалять задачи и выходить из системы.
  */
 @HiltViewModel
 class TodoListViewModel @Inject constructor(
     private val todoRepository: TodoRepository,
-    private val accountRepository: AccountRepository,
+    private val listRepository: ListRepository,
     private val authRepository: AuthRepository,
     private val tokenManager: TokenManager
 ) : ViewModel() {
@@ -49,45 +49,45 @@ class TodoListViewModel @Inject constructor(
     val uiState: StateFlow<TodoListUiState> = _uiState.asStateFlow()
 
     private var currentUserId: Long = -1
-    private var currentAccountId: Long = -1
+    private var currentListId: Long = -1
 
     init {
         loadUserAndTodos()
     }
 
-    /** Загружает данные пользователя и аккаунта из TokenManager, затем задачи */
+    /** Загружает данные пользователя и списка из TokenManager, затем задачи */
     private fun loadUserAndTodos() {
         viewModelScope.launch {
             val userId = tokenManager.userIdFlow.first()
             val userName = tokenManager.userNameFlow.first()
-            val accountId = tokenManager.accountIdFlow.first()
-            val accountName = tokenManager.accountNameFlow.first()
+            val listId = tokenManager.listIdFlow.first()
+            val listName = tokenManager.listNameFlow.first()
 
-            if (userId == null || accountId == null) {
+            if (userId == null || listId == null) {
                 _uiState.update { it.copy(isLoggedOut = true) }
                 return@launch
             }
 
             currentUserId = userId
-            currentAccountId = accountId
+            currentListId = listId
             _uiState.update {
                 it.copy(
                     userName = userName ?: "",
-                    accountName = accountName ?: ""
+                    listName = listName ?: ""
                 )
             }
             loadTodos()
         }
     }
 
-    /** Загружает задачи аккаунта с сервера */
+    /** Загружает задачи списка с сервера */
     fun loadTodos() {
-        if (currentAccountId == -1L) return
+        if (currentListId == -1L) return
 
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
 
-            when (val result = accountRepository.getTodosByAccount(currentAccountId)) {
+            when (val result = listRepository.getTodosByList(currentListId)) {
                 is Result.Success -> {
                     _uiState.update {
                         it.copy(
@@ -136,7 +136,7 @@ class TodoListViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.update { it.copy(isAddingTodo = true) }
 
-            when (val result = todoRepository.createTodo(name, currentUserId, currentAccountId, isPrivate)) {
+            when (val result = todoRepository.createTodo(name, currentUserId, currentListId, isPrivate)) {
                 is Result.Success -> {
                     _uiState.update {
                         it.copy(
@@ -170,7 +170,7 @@ class TodoListViewModel @Inject constructor(
             }
 
             val result = todoRepository.updateTodo(
-                todo.id, todo.name, !todo.done, todo.userId, currentAccountId
+                todo.id, todo.name, !todo.done, todo.userId, currentListId
             )
             if (result is Result.Error) {
                 handleErrorResult(result)
@@ -203,16 +203,16 @@ class TodoListViewModel @Inject constructor(
         }
     }
 
-    /** Смена аккаунта — переход к списку аккаунтов */
-    fun switchAccount() {
+    /** Смена списка — переход к выбору списка */
+    fun switchList() {
         viewModelScope.launch {
-            tokenManager.clearAccount()
-            _uiState.update { it.copy(navigateToAccountList = true) }
+            tokenManager.clearList()
+            _uiState.update { it.copy(navigateToListSelection = true) }
         }
     }
 
-    fun onAccountSwitchHandled() {
-        _uiState.update { it.copy(navigateToAccountList = false) }
+    fun onListSwitchHandled() {
+        _uiState.update { it.copy(navigateToListSelection = false) }
     }
 
     /** Выход из системы */

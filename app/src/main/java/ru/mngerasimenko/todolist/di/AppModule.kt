@@ -4,10 +4,10 @@ import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import ru.mngerasimenko.todolist.data.repository.AccountRepositoryImpl
+import ru.mngerasimenko.todolist.data.repository.ListRepositoryImpl
 import ru.mngerasimenko.todolist.data.repository.AuthRepositoryImpl
 import ru.mngerasimenko.todolist.data.repository.TodoRepositoryImpl
-import ru.mngerasimenko.todolist.domain.repository.AccountRepository
+import ru.mngerasimenko.todolist.domain.repository.ListRepository
 import ru.mngerasimenko.todolist.domain.repository.AuthRepository
 import ru.mngerasimenko.todolist.domain.repository.TodoRepository
 import javax.inject.Singleton
@@ -30,5 +30,5 @@ abstract class AppModule {
 
     @Binds
     @Singleton
-    abstract fun bindAccountRepository(impl: AccountRepositoryImpl): AccountRepository
+    abstract fun bindListRepository(impl: ListRepositoryImpl): ListRepository
 }

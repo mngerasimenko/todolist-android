@@ -48,7 +48,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
  */
 @Composable
 fun LoginScreen(
-    onNavigateToAccountList: () -> Unit,
+    onNavigateToListSelection: () -> Unit,
     onNavigateToRegister: () -> Unit,
     viewModel: LoginViewModel = hiltViewModel()
 ) {
@@ -60,7 +60,7 @@ fun LoginScreen(
     LaunchedEffect(uiState.isLoginSuccess) {
         if (uiState.isLoginSuccess) {
             viewModel.onLoginHandled()
-            onNavigateToAccountList()
+            onNavigateToListSelection()
         }
     }
 
@@ -188,7 +188,7 @@ fun LoginScreen(
 private fun LoginScreenPreview() {
     ru.mngerasimenko.todolist.presentation.theme.TodoListTheme {
         LoginScreen(
-            onNavigateToAccountList = {},
+            onNavigateToListSelection = {},
             onNavigateToRegister = {}
         )
     }

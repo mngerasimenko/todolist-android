@@ -12,7 +12,7 @@ import javax.inject.Inject
 
 /**
  * ViewModel для проверки состояния авторизации при запуске приложения.
- * Определяет стартовый экран: Login, AccountList или TodoList.
+ * Определяет стартовый экран: Login, ListSelection или TodoList.
  */
 @HiltViewModel
 class SplashViewModel @Inject constructor(
@@ -23,8 +23,8 @@ class SplashViewModel @Inject constructor(
     val isLoggedIn: StateFlow<Boolean?> = tokenManager.isLoggedInFlow
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    /** Есть ли сохранённый аккаунт: null — загрузка, true — есть, false — нет */
-    val hasAccount: StateFlow<Boolean?> = tokenManager.accountIdFlow
+    /** Есть ли сохранённый список: null — загрузка, true — есть, false — нет */
+    val hasList: StateFlow<Boolean?> = tokenManager.listIdFlow
         .map { it != null }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 }

@@ -60,15 +60,15 @@ import ru.mngerasimenko.todolist.presentation.theme.TodoDoneColor
 import ru.mngerasimenko.todolist.presentation.theme.TodoPendingColor
 
 /**
- * Главный экран — список задач аккаунта.
+ * Главный экран — список задач.
  * Поддерживает: создание задач (публичных/приватных), отметку выполнения,
- * свайп для удаления, pull-to-refresh, смену аккаунта.
+ * свайп для удаления, pull-to-refresh, смену списка.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TodoListScreen(
     onNavigateToLogin: () -> Unit,
-    onNavigateToAccountList: () -> Unit,
+    onNavigateToListSelection: () -> Unit,
     viewModel: TodoListViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -82,11 +82,11 @@ fun TodoListScreen(
         }
     }
 
-    // Навигация при смене аккаунта
-    LaunchedEffect(uiState.navigateToAccountList) {
-        if (uiState.navigateToAccountList) {
-            viewModel.onAccountSwitchHandled()
-            onNavigateToAccountList()
+    // Навигация при смене списка
+    LaunchedEffect(uiState.navigateToListSelection) {
+        if (uiState.navigateToListSelection) {
+            viewModel.onListSwitchHandled()
+            onNavigateToListSelection()
         }
     }
 
@@ -105,9 +105,9 @@ fun TodoListScreen(
                 title = {
                     Column {
                         Text("Список задач")
-                        if (uiState.accountName.isNotBlank()) {
+                        if (uiState.listName.isNotBlank()) {
                             Text(
-                                text = "${uiState.accountName} \u00B7 ${uiState.userName}",
+                                text = "${uiState.listName} \u00B7 ${uiState.userName}",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -115,11 +115,11 @@ fun TodoListScreen(
                     }
                 },
                 actions = {
-                    // Кнопка смены аккаунта
-                    IconButton(onClick = { viewModel.switchAccount() }) {
+                    // Кнопка смены списка
+                    IconButton(onClick = { viewModel.switchList() }) {
                         Icon(
                             imageVector = Icons.Default.SwapHoriz,
-                            contentDescription = "Сменить аккаунт"
+                            contentDescription = "Сменить список"
                         )
                     }
                     // Кнопка выхода
