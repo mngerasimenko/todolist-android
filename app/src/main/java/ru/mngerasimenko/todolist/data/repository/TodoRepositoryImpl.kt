@@ -5,6 +5,7 @@ import kotlinx.serialization.json.Json
 import ru.mngerasimenko.todolist.data.remote.ApiErrorParser
 import ru.mngerasimenko.todolist.data.remote.api.TodoApiService
 import ru.mngerasimenko.todolist.data.remote.dto.TodoRequest
+import ru.mngerasimenko.todolist.data.remote.dto.TodoResponse
 import ru.mngerasimenko.todolist.domain.model.Result
 import ru.mngerasimenko.todolist.domain.model.Todo
 import ru.mngerasimenko.todolist.domain.repository.TodoRepository
@@ -20,44 +21,26 @@ class TodoRepositoryImpl @Inject constructor(
     private val json: Json
 ) : TodoRepository {
 
-    override suspend fun getTodosByUserId(userId: Long): Result<List<Todo>> {
+    override suspend fun createTodo(
+        name: String,
+        userId: Long,
+        accountId: Long,
+        isPrivate: Boolean
+    ): Result<Todo> {
         return try {
-            val response = todoApi.getTodosByUserId(userId)
-
-            if (response.isSuccessful) {
-                val todos = response.body()?.map { dto ->
-                    Todo(
-                        id = dto.id,
-                        name = dto.name,
-                        done = dto.done,
-                        userId = dto.userId,
-                        userName = dto.userName,
-                        createdAt = dto.createdAt
-                    )
-                } ?: emptyList()
-
-                Result.Success(todos)
-            } else {
-                Result.Error(ApiErrorParser.parse(json, response.errorBody()?.string()), response.code())
-            }
-        } catch (e: CancellationException) {
-            throw e
-        } catch (e: Exception) {
-            Log.e(TAG, "Ошибка загрузки задач", e)
-            Result.Error("Ошибка загрузки задач: ${e.localizedMessage}")
-        }
-    }
-
-    override suspend fun createTodo(name: String, userId: Long): Result<Todo> {
-        return try {
-            val response = todoApi.createTodo(TodoRequest(name = name, userId = userId))
+            val response = todoApi.createTodo(
+                TodoRequest(
+                    name = name,
+                    userId = userId,
+                    accountId = accountId,
+                    isPrivate = isPrivate
+                )
+            )
 
             if (response.isSuccessful) {
                 val dto = response.body()
                     ?: return Result.Error("Пустой ответ от сервера")
-                Result.Success(
-                    Todo(dto.id, dto.name, dto.done, dto.userId, dto.userName, dto.createdAt)
-                )
+                Result.Success(mapTodo(dto))
             } else {
                 Result.Error(ApiErrorParser.parse(json, response.errorBody()?.string()), response.code())
             }
@@ -73,17 +56,24 @@ class TodoRepositoryImpl @Inject constructor(
         id: Long,
         name: String,
         done: Boolean,
-        userId: Long
+        userId: Long,
+        accountId: Long
     ): Result<Todo> {
         return try {
-            val response = todoApi.updateTodo(id, TodoRequest(name = name, userId = userId, done = done))
+            val response = todoApi.updateTodo(
+                id,
+                TodoRequest(
+                    name = name,
+                    userId = userId,
+                    accountId = accountId,
+                    done = done
+                )
+            )
 
             if (response.isSuccessful) {
                 val dto = response.body()
                     ?: return Result.Error("Пустой ответ от сервера")
-                Result.Success(
-                    Todo(dto.id, dto.name, dto.done, dto.userId, dto.userName, dto.createdAt)
-                )
+                Result.Success(mapTodo(dto))
             } else {
                 Result.Error(ApiErrorParser.parse(json, response.errorBody()?.string()), response.code())
             }
@@ -111,6 +101,23 @@ class TodoRepositoryImpl @Inject constructor(
             Result.Error("Ошибка удаления задачи: ${e.localizedMessage}")
         }
     }
+
+    /** Маппинг TodoResponse → Todo */
+    private fun mapTodo(dto: TodoResponse): Todo = Todo(
+        id = dto.id,
+        name = dto.name,
+        done = dto.done,
+        isPrivate = dto.isPrivate,
+        userId = dto.userId,
+        userName = dto.userName,
+        completorUserId = dto.completorUserId,
+        completorUserName = dto.completorUserName,
+        accountId = dto.accountId,
+        creatorColor = dto.creatorColor,
+        completorColor = dto.completorColor,
+        createdAt = dto.createdAt,
+        completedAt = dto.completedAt
+    )
 
     companion object {
         private const val TAG = "TodoRepository"

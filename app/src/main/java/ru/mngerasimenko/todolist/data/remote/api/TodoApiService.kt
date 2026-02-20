@@ -13,9 +13,6 @@ import ru.mngerasimenko.todolist.data.remote.dto.TodoResponse
 /** API задач */
 interface TodoApiService {
 
-    @GET("api/todos/user/{userId}")
-    suspend fun getTodosByUserId(@Path("userId") userId: Long): Response<List<TodoResponse>>
-
     @GET("api/todos/{id}")
     suspend fun getTodoById(@Path("id") id: Long): Response<TodoResponse>
 

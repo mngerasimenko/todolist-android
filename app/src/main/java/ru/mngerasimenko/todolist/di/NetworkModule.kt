@@ -12,6 +12,7 @@ import retrofit2.Retrofit
 import retrofit2.converter.kotlinx.serialization.asConverterFactory
 import ru.mngerasimenko.todolist.BuildConfig
 import ru.mngerasimenko.todolist.data.local.TokenManager
+import ru.mngerasimenko.todolist.data.remote.api.AccountApiService
 import ru.mngerasimenko.todolist.data.remote.api.AuthApiService
 import ru.mngerasimenko.todolist.data.remote.api.TodoApiService
 import ru.mngerasimenko.todolist.data.remote.interceptor.AuthInterceptor
@@ -82,5 +83,11 @@ object NetworkModule {
     @Singleton
     fun provideTodoApiService(retrofit: Retrofit): TodoApiService {
         return retrofit.create(TodoApiService::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideAccountApiService(retrofit: Retrofit): AccountApiService {
+        return retrofit.create(AccountApiService::class.java)
     }
 }

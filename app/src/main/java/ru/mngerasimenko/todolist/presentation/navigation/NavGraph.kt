@@ -15,6 +15,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
 import kotlinx.serialization.Serializable
+import ru.mngerasimenko.todolist.presentation.screen.account.AccountListScreen
 import ru.mngerasimenko.todolist.presentation.screen.login.LoginScreen
 import ru.mngerasimenko.todolist.presentation.screen.register.RegisterScreen
 import ru.mngerasimenko.todolist.presentation.screen.todolist.TodoListScreen
@@ -23,12 +24,13 @@ import ru.mngerasimenko.todolist.presentation.screen.todolist.TodoListScreen
 @Serializable object AuthGraph
 @Serializable object Login
 @Serializable object Register
+@Serializable object AccountList
 @Serializable object TodoList
 
 /**
  * Навигационный граф приложения.
- * Определяет маршруты: Login → TodoList, Register → TodoList.
- * Проверяет состояние авторизации при запуске через SplashViewModel.
+ * Маршруты: Login/Register → AccountList → TodoList.
+ * Проверяет состояние авторизации и наличие аккаунта при запуске.
  */
 @Composable
 fun NavGraph(
@@ -36,9 +38,10 @@ fun NavGraph(
     splashViewModel: SplashViewModel = hiltViewModel()
 ) {
     val isLoggedIn by splashViewModel.isLoggedIn.collectAsStateWithLifecycle()
+    val hasAccount by splashViewModel.hasAccount.collectAsStateWithLifecycle()
 
     // Ждём определения состояния авторизации
-    if (isLoggedIn == null) {
+    if (isLoggedIn == null || hasAccount == null) {
         Box(
             modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center
@@ -48,16 +51,23 @@ fun NavGraph(
         return
     }
 
+    // Определяем стартовый экран
+    val startDestination: Any = when {
+        isLoggedIn != true -> AuthGraph
+        hasAccount == true -> TodoList
+        else -> AccountList
+    }
+
     NavHost(
         navController = navController,
-        startDestination = if (isLoggedIn == true) TodoList else AuthGraph
+        startDestination = startDestination
     ) {
         // Вложенный граф аутентификации (Login + Register)
         navigation<AuthGraph>(startDestination = Login) {
             composable<Login> {
                 LoginScreen(
-                    onNavigateToTodoList = {
-                        navController.navigate(TodoList) {
+                    onNavigateToAccountList = {
+                        navController.navigate(AccountList) {
                             popUpTo<AuthGraph> { inclusive = true }
                         }
                     },
@@ -69,8 +79,8 @@ fun NavGraph(
 
             composable<Register> {
                 RegisterScreen(
-                    onNavigateToTodoList = {
-                        navController.navigate(TodoList) {
+                    onNavigateToAccountList = {
+                        navController.navigate(AccountList) {
                             popUpTo<AuthGraph> { inclusive = true }
                         }
                     },
@@ -81,11 +91,32 @@ fun NavGraph(
             }
         }
 
+        // Экран списка аккаунтов
+        composable<AccountList> {
+            AccountListScreen(
+                onNavigateToTodoList = {
+                    navController.navigate(TodoList) {
+                        popUpTo<AccountList> { inclusive = true }
+                    }
+                },
+                onNavigateToLogin = {
+                    navController.navigate(AuthGraph) {
+                        popUpTo<AccountList> { inclusive = true }
+                    }
+                }
+            )
+        }
+
         // Экран списка задач (главный)
         composable<TodoList> {
             TodoListScreen(
                 onNavigateToLogin = {
                     navController.navigate(AuthGraph) {
+                        popUpTo<TodoList> { inclusive = true }
+                    }
+                },
+                onNavigateToAccountList = {
+                    navController.navigate(AccountList) {
                         popUpTo<TodoList> { inclusive = true }
                     }
                 }

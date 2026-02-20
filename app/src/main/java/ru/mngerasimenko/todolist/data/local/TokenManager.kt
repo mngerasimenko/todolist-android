@@ -30,6 +30,8 @@ class TokenManager @Inject constructor(
         private val USER_ID_KEY = longPreferencesKey("user_id")
         private val USER_NAME_KEY = stringPreferencesKey("user_name")
         private val USER_EMAIL_KEY = stringPreferencesKey("user_email")
+        private val ACCOUNT_ID_KEY = longPreferencesKey("account_id")
+        private val ACCOUNT_NAME_KEY = stringPreferencesKey("account_name")
     }
 
     /** Flow с access токеном (null если не авторизован) */
@@ -52,6 +54,16 @@ class TokenManager @Inject constructor(
         prefs[USER_NAME_KEY]
     }
 
+    /** Flow с ID текущего аккаунта */
+    val accountIdFlow: Flow<Long?> = context.dataStore.data.map { prefs ->
+        prefs[ACCOUNT_ID_KEY]
+    }
+
+    /** Flow с названием текущего аккаунта */
+    val accountNameFlow: Flow<String?> = context.dataStore.data.map { prefs ->
+        prefs[ACCOUNT_NAME_KEY]
+    }
+
     /** Flow — авторизован ли пользователь */
     val isLoggedInFlow: Flow<Boolean> = context.dataStore.data.map { prefs ->
         !prefs[ACCESS_TOKEN_KEY].isNullOrBlank()
@@ -71,6 +83,22 @@ class TokenManager @Inject constructor(
             prefs[USER_ID_KEY] = userId
             prefs[USER_NAME_KEY] = userName
             prefs[USER_EMAIL_KEY] = userEmail
+        }
+    }
+
+    /** Сохраняет выбранный аккаунт */
+    suspend fun saveAccount(accountId: Long, accountName: String) {
+        context.dataStore.edit { prefs ->
+            prefs[ACCOUNT_ID_KEY] = accountId
+            prefs[ACCOUNT_NAME_KEY] = accountName
+        }
+    }
+
+    /** Очищает выбранный аккаунт (при смене аккаунта) */
+    suspend fun clearAccount() {
+        context.dataStore.edit { prefs ->
+            prefs.remove(ACCOUNT_ID_KEY)
+            prefs.remove(ACCOUNT_NAME_KEY)
         }
     }
 

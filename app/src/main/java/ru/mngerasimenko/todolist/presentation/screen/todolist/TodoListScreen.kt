@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -19,8 +20,11 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.LockOpen
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.RadioButtonUnchecked
+import androidx.compose.material.icons.filled.SwapHoriz
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -56,14 +60,15 @@ import ru.mngerasimenko.todolist.presentation.theme.TodoDoneColor
 import ru.mngerasimenko.todolist.presentation.theme.TodoPendingColor
 
 /**
- * Главный экран — список задач пользователя.
- * Поддерживает: создание задач, отметку выполнения,
- * свайп для удаления, pull-to-refresh.
+ * Главный экран — список задач аккаунта.
+ * Поддерживает: создание задач (публичных/приватных), отметку выполнения,
+ * свайп для удаления, pull-to-refresh, смену аккаунта.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TodoListScreen(
     onNavigateToLogin: () -> Unit,
+    onNavigateToAccountList: () -> Unit,
     viewModel: TodoListViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -74,6 +79,14 @@ fun TodoListScreen(
         if (uiState.isLoggedOut) {
             viewModel.onLogoutHandled()
             onNavigateToLogin()
+        }
+    }
+
+    // Навигация при смене аккаунта
+    LaunchedEffect(uiState.navigateToAccountList) {
+        if (uiState.navigateToAccountList) {
+            viewModel.onAccountSwitchHandled()
+            onNavigateToAccountList()
         }
     }
 
@@ -92,9 +105,9 @@ fun TodoListScreen(
                 title = {
                     Column {
                         Text("Список задач")
-                        if (uiState.userName.isNotBlank()) {
+                        if (uiState.accountName.isNotBlank()) {
                             Text(
-                                text = uiState.userName,
+                                text = "${uiState.accountName} \u00B7 ${uiState.userName}",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -102,6 +115,14 @@ fun TodoListScreen(
                     }
                 },
                 actions = {
+                    // Кнопка смены аккаунта
+                    IconButton(onClick = { viewModel.switchAccount() }) {
+                        Icon(
+                            imageVector = Icons.Default.SwapHoriz,
+                            contentDescription = "Сменить аккаунт"
+                        )
+                    }
+                    // Кнопка выхода
                     IconButton(onClick = { viewModel.logout() }) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.Logout,
@@ -122,7 +143,9 @@ fun TodoListScreen(
                 todoName = uiState.newTodoName,
                 onNameChange = viewModel::onNewTodoNameChange,
                 onAdd = viewModel::addTodo,
-                isAdding = uiState.isAddingTodo
+                isAdding = uiState.isAddingTodo,
+                isPrivate = uiState.newTodoIsPrivate,
+                onPrivateChange = viewModel::onNewTodoPrivateChange
             )
 
             // Список задач с pull-to-refresh
@@ -183,6 +206,8 @@ private fun AddTodoBar(
     onNameChange: (String) -> Unit,
     onAdd: () -> Unit,
     isAdding: Boolean,
+    isPrivate: Boolean,
+    onPrivateChange: (Boolean) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Row(
@@ -200,8 +225,20 @@ private fun AddTodoBar(
             enabled = !isAdding
         )
 
-        Spacer(modifier = Modifier.width(8.dp))
+        // Кнопка приватности
+        IconButton(
+            onClick = { onPrivateChange(!isPrivate) },
+            enabled = !isAdding
+        ) {
+            Icon(
+                imageVector = if (isPrivate) Icons.Default.Lock else Icons.Default.LockOpen,
+                contentDescription = if (isPrivate) "Приватная задача" else "Публичная задача",
+                tint = if (isPrivate) MaterialTheme.colorScheme.primary
+                else MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
 
+        // Кнопка добавления
         IconButton(
             onClick = onAdd,
             enabled = !isAdding && todoName.trim().length >= 2
@@ -216,6 +253,15 @@ private fun AddTodoBar(
                 )
             }
         }
+    }
+}
+
+/** Парсинг HEX-цвета в Compose Color */
+private fun parseHexColor(hex: String?): Color? {
+    return try {
+        hex?.let { Color(android.graphics.Color.parseColor(it)) }
+    } catch (_: Exception) {
+        null
     }
 }
 
@@ -274,35 +320,79 @@ private fun TodoItem(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(12.dp),
+                    .height(56.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
+                // Цветная полоска создателя
+                val creatorColor = parseHexColor(todo.creatorColor)
+                if (creatorColor != null) {
+                    Box(
+                        modifier = Modifier
+                            .width(4.dp)
+                            .fillMaxHeight()
+                            .background(creatorColor)
+                    )
+                }
+
                 // Иконка статуса (выполнена / нет)
                 IconButton(onClick = onToggleDone) {
                     Icon(
                         imageVector = if (todo.done) Icons.Default.CheckCircle
                         else Icons.Default.RadioButtonUnchecked,
                         contentDescription = if (todo.done) "Выполнена" else "Не выполнена",
-                        tint = if (todo.done) TodoDoneColor else TodoPendingColor,
+                        tint = if (todo.done) {
+                            parseHexColor(todo.completorColor) ?: TodoDoneColor
+                        } else TodoPendingColor,
                         modifier = Modifier.size(28.dp)
                     )
                 }
 
-                Spacer(modifier = Modifier.width(8.dp))
+                Spacer(modifier = Modifier.width(4.dp))
 
-                // Название задачи
-                Text(
-                    text = todo.name,
-                    style = MaterialTheme.typography.bodyLarge.copy(
-                        textDecoration = if (todo.done) TextDecoration.LineThrough
-                        else TextDecoration.None
-                    ),
-                    color = if (todo.done) MaterialTheme.colorScheme.onSurfaceVariant
-                    else MaterialTheme.colorScheme.onSurface,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.weight(1f)
-                )
+                // Название и метаданные задачи
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = todo.name,
+                        style = MaterialTheme.typography.bodyLarge.copy(
+                            textDecoration = if (todo.done) TextDecoration.LineThrough
+                            else TextDecoration.None
+                        ),
+                        color = if (todo.done) MaterialTheme.colorScheme.onSurfaceVariant
+                        else MaterialTheme.colorScheme.onSurface,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    // Подпись: создатель и кто выполнил
+                    val subtitle = buildString {
+                        append(todo.userName ?: "")
+                        if (todo.done && todo.completorUserName != null) {
+                            append(" \u2022 \u2713 ${todo.completorUserName}")
+                        }
+                    }
+                    if (subtitle.isNotBlank()) {
+                        Text(
+                            text = subtitle,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
+                }
+
+                // Иконка приватности
+                if (todo.isPrivate) {
+                    Icon(
+                        imageVector = Icons.Default.Lock,
+                        contentDescription = "Приватная",
+                        modifier = Modifier
+                            .size(16.dp)
+                            .padding(end = 4.dp),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+
+                Spacer(modifier = Modifier.width(8.dp))
             }
         }
     }
