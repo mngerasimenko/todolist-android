@@ -6,7 +6,7 @@
 ![Hilt](https://img.shields.io/badge/Hilt-DI-FF6F00)
 ![Retrofit](https://img.shields.io/badge/Retrofit-2.x-48B983)
 
-Nативное Android-приложение для управления списком задач. Подключается к [Todo List серверу](https://github.com/mngerasimenko/todo) через REST API с JWT-аутентификацией.
+Нативное Android-приложение для управления списком задач. Подключается к [Todo List серверу](https://github.com/mngerasimenko/todo) через REST API с JWT-аутентификацией.
 
 - **MVVM + Clean Architecture** -- четкое разделение слоев
 - **Jetpack Compose** -- декларативный UI с Material3
