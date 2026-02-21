@@ -14,12 +14,19 @@ import ru.mngerasimenko.todolist.BuildConfig
 import ru.mngerasimenko.todolist.data.local.TokenManager
 import ru.mngerasimenko.todolist.data.remote.api.ListApiService
 import ru.mngerasimenko.todolist.data.remote.api.AuthApiService
+import ru.mngerasimenko.todolist.data.remote.api.StatusApiService
 import ru.mngerasimenko.todolist.data.remote.api.TodoApiService
 import ru.mngerasimenko.todolist.data.remote.interceptor.AuthInterceptor
 import ru.mngerasimenko.todolist.data.remote.interceptor.TokenRefreshInterceptor
 import java.util.concurrent.TimeUnit
 import javax.inject.Provider
+import javax.inject.Qualifier
 import javax.inject.Singleton
+
+/** Квалификатор для публичного OkHttpClient (без авторизации) */
+@Qualifier
+@Retention(AnnotationRetention.BINARY)
+annotation class PublicClient
 
 /**
  * Hilt модуль для сетевого слоя.
@@ -62,6 +69,26 @@ object NetworkModule {
         return builder.build()
     }
 
+    /** Публичный OkHttpClient без AuthInterceptor, таймаут 10 сек */
+    @Provides
+    @Singleton
+    @PublicClient
+    fun providePublicOkHttpClient(): OkHttpClient {
+        val builder = OkHttpClient.Builder()
+            .connectTimeout(10, TimeUnit.SECONDS)
+            .readTimeout(10, TimeUnit.SECONDS)
+            .writeTimeout(10, TimeUnit.SECONDS)
+
+        if (BuildConfig.DEBUG) {
+            val loggingInterceptor = HttpLoggingInterceptor().apply {
+                level = HttpLoggingInterceptor.Level.BODY
+            }
+            builder.addInterceptor(loggingInterceptor)
+        }
+
+        return builder.build()
+    }
+
     @Provides
     @Singleton
     fun provideRetrofit(okHttpClient: OkHttpClient, json: Json): Retrofit {
@@ -89,5 +116,17 @@ object NetworkModule {
     @Singleton
     fun provideListApiService(retrofit: Retrofit): ListApiService {
         return retrofit.create(ListApiService::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideStatusApiService(@PublicClient client: OkHttpClient, json: Json): StatusApiService {
+        val contentType = "application/json".toMediaType()
+        return Retrofit.Builder()
+            .baseUrl(BuildConfig.BASE_URL)
+            .client(client)
+            .addConverterFactory(json.asConverterFactory(contentType))
+            .build()
+            .create(StatusApiService::class.java)
     }
 }
