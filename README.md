@@ -32,6 +32,7 @@
 
 **Задачи**
 - Просмотр задач списка (pull-to-refresh)
+- Фильтрация: Все / Активные / Выполненные (со счётчиками)
 - Добавление новых задач (публичных и приватных)
 - Приватные задачи видны только создателю
 - Отметка задач как выполненных (toggle)
@@ -55,7 +56,7 @@
 - Dark Mode и Material You (Android 12+)
 - Отображение ошибок через Snackbar
 
-**Версия:** 1.1.0
+**Версия:** 1.0.1
 
 ---
 
@@ -225,8 +226,8 @@ app/src/main/java/ru/mngerasimenko/todolist/
     │   │   ├── RegisterScreen.kt     # UI регистрации
     │   │   └── RegisterViewModel.kt  # Логика регистрации
     │   └── todolist/
-    │       ├── TodoListScreen.kt     # UI списка задач
-    │       └── TodoListViewModel.kt  # CRUD + приватность + цвета
+    │       ├── TodoListScreen.kt     # UI списка задач + FilterBar
+    │       └── TodoListViewModel.kt  # CRUD + приватность + цвета + фильтрация
     └── theme/
         ├── Color.kt                  # Палитра цветов
         ├── Theme.kt                  # Material3 + Dark Mode
