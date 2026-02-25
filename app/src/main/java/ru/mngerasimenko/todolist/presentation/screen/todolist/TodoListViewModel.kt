@@ -17,9 +17,13 @@ import ru.mngerasimenko.todolist.domain.repository.AuthRepository
 import ru.mngerasimenko.todolist.domain.repository.TodoRepository
 import javax.inject.Inject
 
+/** Фильтр отображаемых задач */
+enum class TodoFilter { ALL, ACTIVE, DONE }
+
 /** Состояние экрана списка задач */
 data class TodoListUiState(
     val todos: List<Todo> = emptyList(),
+    val filter: TodoFilter = TodoFilter.ALL,
     val userName: String = "",
     val listName: String = "",
     val isLoading: Boolean = false,
@@ -30,7 +34,14 @@ data class TodoListUiState(
     val isAddingTodo: Boolean = false,
     val isLoggedOut: Boolean = false,
     val navigateToListSelection: Boolean = false
-)
+) {
+    /** Задачи с учётом выбранного фильтра */
+    val filteredTodos: List<Todo> get() = when (filter) {
+        TodoFilter.ALL -> todos
+        TodoFilter.ACTIVE -> todos.filter { !it.done }
+        TodoFilter.DONE -> todos.filter { it.done }
+    }
+}
 
 /**
  * ViewModel для экрана списка задач.
@@ -226,6 +237,11 @@ class TodoListViewModel @Inject constructor(
     /** Сброс флага выхода (после навигации) */
     fun onLogoutHandled() {
         _uiState.update { it.copy(isLoggedOut = false) }
+    }
+
+    /** Выбор фильтра задач */
+    fun setFilter(filter: TodoFilter) {
+        _uiState.update { it.copy(filter = filter) }
     }
 
     /** Сброс ошибки */

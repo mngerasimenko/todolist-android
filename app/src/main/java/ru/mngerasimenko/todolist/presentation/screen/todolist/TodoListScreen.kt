@@ -29,6 +29,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -148,6 +149,13 @@ fun TodoListScreen(
                 onPrivateChange = viewModel::onNewTodoPrivateChange
             )
 
+            // Фильтр задач
+            FilterBar(
+                filter = uiState.filter,
+                todos = uiState.todos,
+                onFilterChange = viewModel::setFilter
+            )
+
             // Список задач с pull-to-refresh
             PullToRefreshBox(
                 isRefreshing = uiState.isRefreshing,
@@ -162,14 +170,15 @@ fun TodoListScreen(
                     ) {
                         CircularProgressIndicator()
                     }
-                } else if (uiState.todos.isEmpty()) {
-                    // Пустой список
+                } else if (uiState.filteredTodos.isEmpty()) {
+                    // Пустой список (с учётом фильтра)
                     Box(
                         modifier = Modifier.fillMaxSize(),
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text = "Нет задач. Добавьте первую!",
+                            text = if (uiState.todos.isEmpty()) "Нет задач. Добавьте первую!"
+                            else "Нет задач в этой категории",
                             style = MaterialTheme.typography.bodyLarge,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -181,7 +190,7 @@ fun TodoListScreen(
                         verticalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
                         items(
-                            items = uiState.todos,
+                            items = uiState.filteredTodos,
                             key = { it.id }
                         ) { todo ->
                             TodoItem(
@@ -252,6 +261,36 @@ private fun AddTodoBar(
                     tint = MaterialTheme.colorScheme.primary
                 )
             }
+        }
+    }
+}
+
+/** Панель фильтрации задач: Все / Активные / Выполненные */
+@Composable
+private fun FilterBar(
+    filter: TodoFilter,
+    todos: List<Todo>,
+    onFilterChange: (TodoFilter) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val items = listOf(
+        Triple(TodoFilter.ALL, "Все", todos.size),
+        Triple(TodoFilter.ACTIVE, "Активные", todos.count { !it.done }),
+        Triple(TodoFilter.DONE, "Выполненные", todos.count { it.done }),
+    )
+
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 4.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        items.forEach { (value, label, count) ->
+            FilterChip(
+                selected = filter == value,
+                onClick = { onFilterChange(value) },
+                label = { Text("$label ($count)") }
+            )
         }
     }
 }
