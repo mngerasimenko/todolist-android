@@ -6,7 +6,7 @@
 ![Hilt](https://img.shields.io/badge/Hilt-DI-FF6F00)
 ![Retrofit](https://img.shields.io/badge/Retrofit-2.x-48B983)
 
-Нативное Android-приложение для управления списком задач. Подключается к [Todo List серверу](https://github.com/mngerasimenko/todo) через REST API с JWT-аутентификацией.
+Нативное Android-приложение для управления списком задач. Подключается к [Todo List серверу](https://github.com/mngerasimenko/todo) через REST API с JWT-аутентификацией. Параллельно существует [React SPA](https://github.com/mngerasimenko/todolist-web) для браузера.
 
 - **MVVM + Clean Architecture** -- четкое разделение слоев
 - **Jetpack Compose** -- декларативный UI с Material3
@@ -260,11 +260,13 @@ app/src/main/java/ru/mngerasimenko/todolist/
 
 ### Задачи
 
-| Метод  | Эндпоинт            | Описание            |
-|--------|----------------------|---------------------|
-| POST   | /api/todos/create    | Создать задачу      |
-| PUT    | /api/todos/{id}      | Обновить задачу     |
-| DELETE | /api/todos/{id}      | Удалить задачу      |
+| Метод  | Эндпоинт                  | Описание                    |
+|--------|----------------------------|-----------------------------|
+| POST   | /api/todos/create          | Создать задачу              |
+| PUT    | /api/todos/{id}            | Обновить задачу             |
+| PATCH  | /api/todos/{id}/done       | Отметить задачу выполненной |
+| PATCH  | /api/todos/{id}/undone     | Снять отметку выполнения    |
+| DELETE | /api/todos/{id}            | Удалить задачу              |
 
 ### Служебные
 
@@ -276,4 +278,5 @@ app/src/main/java/ru/mngerasimenko/todolist/
 
 ## Связанные проекты
 
-- [Todo List -- сервер](https://github.com/mngerasimenko/todo) -- Spring Boot бэкенд с REST API и Vaadin UI
+- [Todo List — сервер](https://github.com/mngerasimenko/todo) — Spring Boot REST API бэкенд
+- [Todo List — Web UI](https://github.com/mngerasimenko/todolist-web) — React SPA (TypeScript + Vite + Tailwind CSS)
