@@ -49,6 +49,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import ru.mngerasimenko.todolist.domain.model.TaskList
+import ru.mngerasimenko.todolist.presentation.components.ListItemSkeleton
 
 /**
  * Экран выбора списка задач.
@@ -145,11 +146,11 @@ fun ListSelectionScreen(
 
             // Список
             if (uiState.isLoading) {
-                Box(
+                Column(
                     modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
-                    CircularProgressIndicator()
+                    repeat(3) { ListItemSkeleton() }
                 }
             } else if (uiState.lists.isEmpty()) {
                 Box(

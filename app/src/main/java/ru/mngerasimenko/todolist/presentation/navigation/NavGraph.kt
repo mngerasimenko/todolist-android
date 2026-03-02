@@ -1,5 +1,10 @@
 package ru.mngerasimenko.todolist.presentation.navigation
 
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.AlertDialog
@@ -102,7 +107,12 @@ fun NavGraph(
     ) {
         // Вложенный граф аутентификации (Login + Register)
         navigation<AuthGraph>(startDestination = Login) {
-            composable<Login> {
+            composable<Login>(
+                enterTransition = { fadeIn(tween(300)) },
+                exitTransition = { slideOutHorizontally(tween(300)) { -it / 3 } + fadeOut(tween(300)) },
+                popEnterTransition = { slideInHorizontally(tween(300)) { -it / 3 } + fadeIn(tween(300)) },
+                popExitTransition = { fadeOut(tween(300)) }
+            ) {
                 LoginScreen(
                     onNavigateToListSelection = {
                         navController.navigate(ListSelection) {
@@ -115,7 +125,12 @@ fun NavGraph(
                 )
             }
 
-            composable<Register> {
+            composable<Register>(
+                enterTransition = { slideInHorizontally(tween(300)) { it } + fadeIn(tween(300)) },
+                exitTransition = { slideOutHorizontally(tween(300)) { it } + fadeOut(tween(300)) },
+                popEnterTransition = { slideInHorizontally(tween(300)) { -it } + fadeIn(tween(300)) },
+                popExitTransition = { slideOutHorizontally(tween(300)) { it } + fadeOut(tween(300)) }
+            ) {
                 RegisterScreen(
                     onNavigateToListSelection = {
                         navController.navigate(ListSelection) {
@@ -130,7 +145,12 @@ fun NavGraph(
         }
 
         // Экран выбора списка
-        composable<ListSelection> {
+        composable<ListSelection>(
+            enterTransition = { slideInHorizontally(tween(300)) { it } + fadeIn(tween(300)) },
+            exitTransition = { slideOutHorizontally(tween(300)) { -it / 3 } + fadeOut(tween(300)) },
+            popEnterTransition = { slideInHorizontally(tween(300)) { -it / 3 } + fadeIn(tween(300)) },
+            popExitTransition = { slideOutHorizontally(tween(300)) { it } + fadeOut(tween(300)) }
+        ) {
             ListSelectionScreen(
                 onNavigateToTodoList = {
                     navController.navigate(TodoList) {
@@ -146,7 +166,12 @@ fun NavGraph(
         }
 
         // Экран списка задач (главный)
-        composable<TodoList> {
+        composable<TodoList>(
+            enterTransition = { slideInHorizontally(tween(300)) { it } + fadeIn(tween(300)) },
+            exitTransition = { slideOutHorizontally(tween(300)) { -it / 3 } + fadeOut(tween(300)) },
+            popEnterTransition = { slideInHorizontally(tween(300)) { -it / 3 } + fadeIn(tween(300)) },
+            popExitTransition = { slideOutHorizontally(tween(300)) { it } + fadeOut(tween(300)) }
+        ) {
             TodoListScreen(
                 onNavigateToLogin = {
                     navController.navigate(AuthGraph) {

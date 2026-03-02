@@ -53,12 +53,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import ru.mngerasimenko.todolist.domain.model.Todo
-import ru.mngerasimenko.todolist.presentation.theme.TodoDoneColor
-import ru.mngerasimenko.todolist.presentation.theme.TodoPendingColor
+import ru.mngerasimenko.todolist.presentation.components.TodoItemSkeleton
 
 /**
  * Главный экран — список задач.
@@ -163,12 +164,12 @@ fun TodoListScreen(
                 modifier = Modifier.fillMaxSize()
             ) {
                 if (uiState.isLoading && uiState.todos.isEmpty()) {
-                    // Индикатор первоначальной загрузки
-                    Box(
+                    // Скелетоны загрузки
+                    Column(
                         modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
+                        verticalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
-                        CircularProgressIndicator()
+                        repeat(5) { TodoItemSkeleton() }
                     }
                 } else if (uiState.filteredTodos.isEmpty()) {
                     // Пустой список (с учётом фильтра)
@@ -219,6 +220,7 @@ private fun AddTodoBar(
     onPrivateChange: (Boolean) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val haptic = LocalHapticFeedback.current
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -249,7 +251,10 @@ private fun AddTodoBar(
 
         // Кнопка добавления
         IconButton(
-            onClick = onAdd,
+            onClick = {
+                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                onAdd()
+            },
             enabled = !isAdding && todoName.trim().length >= 2
         ) {
             if (isAdding) {
@@ -313,9 +318,11 @@ private fun TodoItem(
     onDelete: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val haptic = LocalHapticFeedback.current
     val dismissState = rememberSwipeToDismissBoxState(
         confirmValueChange = { value ->
             if (value == SwipeToDismissBoxValue.EndToStart) {
+                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                 onDelete()
                 true
             } else {
@@ -374,14 +381,17 @@ private fun TodoItem(
                 }
 
                 // Иконка статуса (выполнена / нет)
-                IconButton(onClick = onToggleDone) {
+                IconButton(onClick = {
+                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                    onToggleDone()
+                }) {
                     Icon(
                         imageVector = if (todo.done) Icons.Default.CheckCircle
                         else Icons.Default.RadioButtonUnchecked,
                         contentDescription = if (todo.done) "Выполнена" else "Не выполнена",
                         tint = if (todo.done) {
-                            parseHexColor(todo.completorColor) ?: TodoDoneColor
-                        } else TodoPendingColor,
+                            parseHexColor(todo.completorColor) ?: MaterialTheme.colorScheme.tertiary
+                        } else MaterialTheme.colorScheme.secondary,
                         modifier = Modifier.size(28.dp)
                     )
                 }

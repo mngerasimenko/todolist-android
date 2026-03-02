@@ -53,7 +53,10 @@
 - Блокирующий диалог при устаревшей версии клиента (Обновить)
 
 **Интерфейс**
-- Dark Mode и Material You (Android 12+)
+- Dark Mode и Material You (Android 12+) с обогащёнными fallback-цветами
+- Shimmer-скелетоны при загрузке списков (вместо спиннера)
+- Плавные анимации переходов между экранами (slide + fade)
+- Тактильная отдача (haptic feedback) при отметке, удалении и создании задач
 - Отображение ошибок через Snackbar
 
 **Версия:** 1.0.1
@@ -212,6 +215,8 @@ app/src/main/java/ru/mngerasimenko/todolist/
 └── presentation/                    # UI (Jetpack Compose)
     ├── TodoApp.kt                    # @HiltAndroidApp (точка входа)
     ├── MainActivity.kt               # Single Activity
+    ├── components/
+    │   └── ShimmerEffect.kt          # Shimmer-скелетоны загрузки
     ├── navigation/
     │   ├── NavGraph.kt               # Маршруты + диалоги статуса сервера
     │   └── SplashViewModel.kt        # Проверка авторизации, списка и статуса сервера
