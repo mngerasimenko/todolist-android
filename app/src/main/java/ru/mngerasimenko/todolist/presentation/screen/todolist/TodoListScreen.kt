@@ -100,6 +100,14 @@ fun TodoListScreen(
         }
     }
 
+    // Показ успеха через Snackbar
+    LaunchedEffect(uiState.successMessage) {
+        uiState.successMessage?.let {
+            snackbarHostState.showSnackbar(it, duration = SnackbarDuration.Short)
+            viewModel.dismissSuccess()
+        }
+    }
+
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
@@ -197,7 +205,8 @@ fun TodoListScreen(
                             TodoItem(
                                 todo = todo,
                                 onToggleDone = { viewModel.toggleTodoDone(todo) },
-                                onDelete = { viewModel.deleteTodo(todo) }
+                                onDelete = { viewModel.deleteTodo(todo) },
+                                modifier = Modifier.animateItem()
                             )
                         }
                         // Отступ снизу
@@ -332,6 +341,7 @@ private fun TodoItem(
     )
 
     SwipeToDismissBox(
+        modifier = modifier,
         state = dismissState,
         backgroundContent = {
             // Красный фон при свайпе для удаления

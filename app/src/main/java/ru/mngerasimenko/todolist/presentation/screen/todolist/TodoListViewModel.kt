@@ -23,7 +23,8 @@ enum class TodoFilter { ALL, ACTIVE, DONE }
 /** Состояние экрана списка задач */
 data class TodoListUiState(
     val todos: List<Todo> = emptyList(),
-    val filter: TodoFilter = TodoFilter.ALL,
+    val filter: TodoFilter = TodoFilter.ACTIVE,
+    val successMessage: String? = null,
     val userName: String = "",
     val listName: String = "",
     val isLoading: Boolean = false,
@@ -154,7 +155,8 @@ class TodoListViewModel @Inject constructor(
                             todos = listOf(result.data) + it.todos,
                             newTodoName = "",
                             newTodoIsPrivate = false,
-                            isAddingTodo = false
+                            isAddingTodo = false,
+                            successMessage = "Задача создана"
                         )
                     }
                 }
@@ -210,6 +212,8 @@ class TodoListViewModel @Inject constructor(
                 handleErrorResult(result)
                 // Откатываем при ошибке и показываем сообщение
                 _uiState.update { it.copy(todos = previousTodos, errorMessage = result.message) }
+            } else {
+                _uiState.update { it.copy(successMessage = "Задача удалена") }
             }
         }
     }
@@ -247,6 +251,11 @@ class TodoListViewModel @Inject constructor(
     /** Сброс ошибки */
     fun dismissError() {
         _uiState.update { it.copy(errorMessage = null) }
+    }
+
+    /** Сброс сообщения об успехе */
+    fun dismissSuccess() {
+        _uiState.update { it.copy(successMessage = null) }
     }
 
     /** Проверяет, является ли ошибка 401 (токен истёк) — перенаправляет на логин */

@@ -20,6 +20,7 @@ data class ListSelectionUiState(
     val lists: List<TaskList> = emptyList(),
     val isLoading: Boolean = false,
     val errorMessage: String? = null,
+    val successMessage: String? = null,
     // Диалог создания списка
     val showCreateDialog: Boolean = false,
     val createName: String = "",
@@ -115,7 +116,9 @@ class ListSelectionViewModel @Inject constructor(
 
             when (val result = listRepository.createList(name, password)) {
                 is Result.Success -> {
-                    _uiState.update { it.copy(isCreating = false, showCreateDialog = false) }
+                    _uiState.update {
+                        it.copy(isCreating = false, showCreateDialog = false, successMessage = "Список создан")
+                    }
                     // Автоматически выбираем созданный список
                     selectList(result.data)
                 }
@@ -157,7 +160,9 @@ class ListSelectionViewModel @Inject constructor(
 
             when (val result = listRepository.joinList(name, password)) {
                 is Result.Success -> {
-                    _uiState.update { it.copy(isJoining = false, showJoinDialog = false) }
+                    _uiState.update {
+                        it.copy(isJoining = false, showJoinDialog = false, successMessage = "Вы вступили в список")
+                    }
                     // Автоматически выбираем список
                     selectList(result.data)
                 }
@@ -185,6 +190,11 @@ class ListSelectionViewModel @Inject constructor(
 
     fun dismissError() {
         _uiState.update { it.copy(errorMessage = null) }
+    }
+
+    /** Сброс сообщения об успехе */
+    fun dismissSuccess() {
+        _uiState.update { it.copy(successMessage = null) }
     }
 
     /** При 401 — перенаправляет на логин */
