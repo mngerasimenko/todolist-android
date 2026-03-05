@@ -55,6 +55,12 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -230,6 +236,17 @@ private fun AddTodoBar(
     modifier: Modifier = Modifier
 ) {
     val haptic = LocalHapticFeedback.current
+    val focusRequester = remember { FocusRequester() }
+    val keyboardController = LocalSoftwareKeyboardController.current
+
+    // Восстанавливаем фокус и клавиатуру после завершения добавления
+    LaunchedEffect(isAdding) {
+        if (!isAdding) {
+            focusRequester.requestFocus()
+            keyboardController?.show()
+        }
+    }
+
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -241,8 +258,19 @@ private fun AddTodoBar(
             onValueChange = onNameChange,
             placeholder = { Text("Новая задача...") },
             singleLine = true,
-            modifier = Modifier.weight(1f),
-            enabled = !isAdding
+            modifier = Modifier
+                .weight(1f)
+                .focusRequester(focusRequester),
+            enabled = !isAdding,
+            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Send),
+            keyboardActions = KeyboardActions(
+                onSend = {
+                    if (todoName.trim().length >= 2 && !isAdding) {
+                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                        onAdd()
+                    }
+                }
+            )
         )
 
         // Кнопка приватности
