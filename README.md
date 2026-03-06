@@ -17,7 +17,7 @@
 
 ## Демо
 
-Приложение подключается к REST API серверу `https://todo.mngerasimenko.ru/` (только API, без веб-интерфейса).
+Приложение подключается к REST API серверу `https://todo.mngerasimenko.ru/` (там же работает [React SPA](https://github.com/mngerasimenko/todolist-web) для браузера).
 
 Для входа используйте тестовый аккаунт: логин `testUser`, пароль `testUser`.
 
