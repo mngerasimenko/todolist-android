@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <network-security-config>
-    <!-- HTTP разрешён только для development серверов -->
+    <!-- HTTP разрешён только для development серверов (эмулятор и локальная сеть) -->
     <domain-config cleartextTrafficPermitted="true">
-        <domain includeSubdomains="false">185.244.172.45</domain>
         <domain includeSubdomains="false">10.0.2.2</domain>
         <domain includeSubdomains="false">localhost</domain>
     </domain-config>

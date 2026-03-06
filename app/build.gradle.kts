@@ -21,7 +21,7 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
         // URL бэкенда (по умолчанию — production сервер)
-        buildConfigField("String", "BASE_URL", "\"http://185.244.172.45:8090/\"")
+        buildConfigField("String", "BASE_URL", "\"https://todo.mngerasimenko.ru/\"")
     }
 
     buildTypes {
